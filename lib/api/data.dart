@@ -1,16 +1,17 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 String fetchedAfter;
 var gifURLS = [];
-int currentIndex = 0;
 // json page limit
-int limit = 100;
+int limit = 10;
 String after = '';
 
-String redditURL = 'https://www.reddit.com/r/gifs/hot.json?limit=100&after=';
-String url = 'https://www.reddit.com/r/gifs/hot.json?limit=100&after=';
+String redditURL = 'https://www.reddit.com/r/gifs/hot.json?limit=$limit&after=';
+String url = 'https://www.reddit.com/r/gifs/hot.json?limit=$limit&after=';
 
 class MediaPost {
   String urlPath;
@@ -19,6 +20,7 @@ class MediaPost {
 
   MediaPost(this.urlPath, this.domain, this.thumbnail);
 }
+
 // Get data
 // future - used to represent a potential value, or error,
 // that will be avaialble in the future
@@ -45,11 +47,6 @@ Future<List<MediaPost>> getMediaPosts() async {
 
 // Create List of Data
 List<MediaPost> createMediaPostList(List data) {
-  if (currentIndex == gifURLS.length - 1) {
-    after = fetchedAfter;
-    url = '$redditURL$after';
-  }
-
   List<MediaPost> list = new List();
   for (int i = 0; i < data.length; i++) {
     String urlPath = data[i]["data"]['url'];
@@ -62,3 +59,21 @@ List<MediaPost> createMediaPostList(List data) {
   return list;
 }
 
+// Parse media content
+void createMediaPostCardItem(
+    List<MediaPost> _mediaPosts, BuildContext context) {
+  if (_mediaPosts != null) {
+    MediaPost mediaPost = _mediaPosts[0];
+    for (var i = 0; i < _mediaPosts.length; i++) {
+      mediaPost = _mediaPosts[i];
+      var parsedURL =
+          mediaPost.urlPath.substring(0, mediaPost.urlPath.lastIndexOf(".")) +
+              ".mp4";
+      if (!(gifURLS.contains(parsedURL)) &&
+          mediaPost.urlPath.endsWith(".gifv") &&
+          mediaPost.thumbnail != 'nsfw') {
+        gifURLS.add(parsedURL);
+      }
+    }
+  }
+}

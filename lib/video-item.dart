@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:chewie/chewie.dart';
 import 'package:flutter/cupertino.dart';
+import 'dart:async';
+
 import 'package:video_player/video_player.dart';
+import 'package:chewie/chewie.dart';
 
 import 'package:flutter/widgets.dart';
 import 'package:cga/api/data.dart';
@@ -12,105 +14,149 @@ class VideoItem extends StatefulWidget {
   _VideoItemState createState() => _VideoItemState();
 }
 
-class _VideoItemState extends State<VideoItem> {
+class _VideoItemState extends State<VideoItem>
+    with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return _contentSection();
   }
 
-  // video player using 'chewie' dependency
-  Widget _playerWidget(String _url) {
-    return Stack(
-      children: <Widget>[
-        spinner(),
-        Center(
-          child: new Chewie(
-            new VideoPlayerController.network('$_url'),
-            autoInitialize: true,
-            aspectRatio: 9 / 16,
-            autoPlay: true,
-            looping: true,
-            showControls: false,
-          ),
-        )
-      ],
-    );
+  Timer _timer;
+  List _mediaPosts;
+  int currentIndex = 0;
+
+  Animation<double> fadeAnimation;
+  AnimationController controller;
+
+  initState() {
+    super.initState();
+    controller = AnimationController(
+        duration: const Duration(milliseconds: 1000), vsync: this);
+    fadeAnimation = Tween(begin: 0.0, end: 1.0).animate(controller)
+      ..addListener(
+        () {
+          setState(() {});
+        },
+      );
+    controller.forward();
   }
 
   Widget _contentSection() {
     return new FutureBuilder(
       future: getMediaPosts(),
       builder: (BuildContext context, AsyncSnapshot<List> snapshot) {
-        if (!snapshot.hasData) {
-          return new Container(
-            child: spinner(),
-          );
+        if (!snapshot.hasData) {}
+
+        _mediaPosts = snapshot.data;
+        createMediaPostCardItem(_mediaPosts, context);
+
+        if (currentIndex == gifURLS.length) {
+          after = fetchedAfter;
+          url = '$redditURL$after';
+
+          createMediaPostCardItem(_mediaPosts, context);
+
+          while (currentIndex == gifURLS.length) {
+            return spinner();
+          }
         }
-        List mediaPosts = snapshot.data;
-        createMediaPostCardItem(mediaPosts, context);
-        return new GestureDetector(
-          onHorizontalDragEnd: (DragEndDetails details) =>
-              _onHorizontalDrag(details),
-          child: new Container(
-            child: new AnimatedOpacity(
-              // start at 0.0
-              opacity: 0.8,
-              duration: Duration(milliseconds: 500),
-              child: _playerWidget(gifURLS[currentIndex]),
-            )
-          )
+        return new Opacity(
+          opacity: fadeAnimation.value,
+          child: GestureDetector(
+            onHorizontalDragEnd: (DragEndDetails details) =>
+                _onHorizontalDrag(details),
+            child: new Stack(
+              children: <Widget>[
+                _videoPlayer(gifURLS[currentIndex]),
+                _logo(),
+              ],
+            ),
+          ),
         );
-      }
+      },
     );
   }
 
-// Parse media content
-void createMediaPostCardItem(
-  List<MediaPost> mediaPosts, BuildContext context) {
-    if (mediaPosts != null) {
-      MediaPost mediaPost = mediaPosts[0];
-      for (var i = 0; i < mediaPosts.length; i++) {
-        mediaPost = mediaPosts[i];
-        var parsedURL =
-            mediaPost.urlPath.substring(0, mediaPost.urlPath.lastIndexOf(".")) +
-                ".mp4";
-        if (!(gifURLS.contains(parsedURL)) &&
-            mediaPost.urlPath.endsWith(".gifv") &&
-            mediaPost.thumbnail != 'nsfw') {
-          gifURLS.add(parsedURL);
-        }
-      }
-    }
-}
+  // video player using 'chewie' dependency
+  Widget _videoPlayer(String _url) {
+    return new Container(
+      child: new Chewie(
+        new VideoPlayerController.network('$_url'),
+        autoInitialize: false,
+        aspectRatio: 9 / 16,
+        autoPlay: true,
+        looping: true,
+        showControls: false,
+      ),
+    );
+  }
+
+  Widget _logo() {
+    return new Align(
+      alignment: Alignment.topRight,
+      child: new Container(
+        width: 100.0,
+        height: 100.0,
+        margin: EdgeInsets.only(
+          top: 70.0,
+          right: 20.0,
+        ),
+        child: Opacity(
+          opacity: 0.7,
+          // child: Image.asset('assets/images/lake.jpg'),
+        ),
+      ),
+    );
+  }
 
 // Horizontal drag gesture
 // https://stackoverflow.com/a/51303072
-void _onHorizontalDrag(DragEndDetails details) {
-  if (details.primaryVelocity == 0)
-    return;
+  void _onHorizontalDrag(DragEndDetails details) {
+    if (details.primaryVelocity == 0) return;
 
-  if (details.primaryVelocity.compareTo(0) == -1) {
-    setState(() {
-      if (currentIndex == gifURLS.length - 1) {
-        setState(() {
-          after = fetchedAfter;
-          url = '$redditURL$after';
-        });
-      } else {
-        currentIndex++;
+    if (currentIndex == gifURLS.length - 2) {
+      after = fetchedAfter;
+      url = '$redditURL$after';
+
+      createMediaPostCardItem(_mediaPosts, context);
+    }
+
+    // left swipe
+    if (details.primaryVelocity.compareTo(0) == -1) {
+      controller.reverse();
+      setState(() {});
+
+      _timer = new Timer(
+        const Duration(milliseconds: 1000),
+        () {
+          controller.forward();
+          currentIndex++;
+          setState(() {});
+        },
+      );
+    }
+    // right swipe
+    else {
+      if (!(currentIndex - 1 < 0)) {
+        controller.reverse();
+        setState(() {});
+
+        _timer = new Timer(
+          const Duration(milliseconds: 1000),
+          () {
+            controller.forward();
+            if (currentIndex - 1 != -1) {
+              currentIndex--;
+              setState(() {});
+            }
+          },
+        );
       }
-    });
-  } else {
-    setState(() {
-      if (currentIndex < 0) {
-        setState(() {
-          currentIndex = 0;
-          return;
-        });
-      } else if (currentIndex >= 1) {
-        currentIndex--;
-      }
-    });
+    }
   }
-}
+
+  dispose() {
+    controller.dispose();
+    super.dispose();
+  }
 }

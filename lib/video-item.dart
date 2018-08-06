@@ -23,16 +23,24 @@ class _VideoItemState extends State<VideoItem>
 
   Timer _timer;
   List _mediaPosts;
-  int currentIndex = 0;
+  int currentIndex = 1;
 
   Animation<double> fadeAnimation;
+  Animation<double> fadeAnimationWatermark;
+
   AnimationController controller;
 
   initState() {
     super.initState();
     controller = AnimationController(
-        duration: const Duration(milliseconds: 1000), vsync: this);
+        duration: const Duration(milliseconds: 500), vsync: this);
     fadeAnimation = Tween(begin: 0.0, end: 1.0).animate(controller)
+      ..addListener(
+        () {
+          setState(() {});
+        },
+      );
+    fadeAnimationWatermark = Tween(begin: 0.0, end: 0.5).animate(controller)
       ..addListener(
         () {
           setState(() {});
@@ -60,16 +68,30 @@ class _VideoItemState extends State<VideoItem>
             return spinner();
           }
         }
+
         return new Opacity(
           opacity: fadeAnimation.value,
           child: GestureDetector(
             onHorizontalDragEnd: (DragEndDetails details) =>
                 _onHorizontalDrag(details),
-            child: new Stack(
-              children: <Widget>[
-                _videoPlayer(gifURLS[currentIndex]),
-                _logo(),
-              ],
+            child: new Container(
+              child: new Stack(
+                children: <Widget>[
+                  // _videoPlayer(gifURLS[currentIndex]),
+                  _videoPlayer(''),
+                  _logoWatermark(),
+                  new Align(
+                    alignment: Alignment.bottomCenter,
+                    child: new Container(
+                      color: Colors.white,
+                      height: 100.0,
+                      child: new Center(
+                        child: Text('${gifURLS.length} \n $currentIndex'),
+                      ),
+                    ),
+                  )
+                ],
+              ),
             ),
           ),
         );
@@ -91,19 +113,19 @@ class _VideoItemState extends State<VideoItem>
     );
   }
 
-  Widget _logo() {
+  Widget _logoWatermark() {
     return new Align(
       alignment: Alignment.topRight,
       child: new Container(
         width: 100.0,
         height: 100.0,
         margin: EdgeInsets.only(
-          top: 70.0,
+          top: 0.0,
           right: 20.0,
         ),
         child: Opacity(
-          opacity: 0.7,
-          // child: Image.asset('assets/images/lake.jpg'),
+          opacity: fadeAnimationWatermark.value,
+          child: Image.asset('assets/images/Icon.png'),
         ),
       ),
     );
@@ -127,7 +149,7 @@ class _VideoItemState extends State<VideoItem>
       setState(() {});
 
       _timer = new Timer(
-        const Duration(milliseconds: 1000),
+        const Duration(milliseconds: 500),
         () {
           controller.forward();
           currentIndex++;
@@ -142,7 +164,7 @@ class _VideoItemState extends State<VideoItem>
         setState(() {});
 
         _timer = new Timer(
-          const Duration(milliseconds: 1000),
+          const Duration(milliseconds: 500),
           () {
             controller.forward();
             if (currentIndex - 1 != -1) {

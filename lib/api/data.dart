@@ -10,15 +10,17 @@ var gifURLS = [];
 int limit = 10;
 String after = '';
 
-String redditURL = 'https://www.reddit.com/r/gifs/hot.json?limit=$limit&after=';
-String url = 'https://www.reddit.com/r/gifs/hot.json?limit=$limit&after=';
+String redditURL =
+    'https://www.reddit.com/r/catgifs/hot.json?limit=$limit&after=';
+String url = 'https://www.reddit.com/r/catgifs/hot.json?limit=$limit&after=';
 
 class MediaPost {
   String urlPath;
   String domain;
   String thumbnail;
+  String pathURL;
 
-  MediaPost(this.urlPath, this.domain, this.thumbnail);
+  MediaPost(this.urlPath, this.domain, this.thumbnail, this.pathURL);
 }
 
 // Get data
@@ -52,8 +54,10 @@ List<MediaPost> createMediaPostList(List data) {
     String urlPath = data[i]["data"]['url'];
     String domain = data[i]["data"]['domain'];
     String thumbnail = data[i]["data"]['thumbnail'];
+    String pathURL = data[i]["data"]['secure_media'];
 
-    MediaPost mediaPost = new MediaPost(urlPath, domain, thumbnail);
+    MediaPost mediaPost = new MediaPost(urlPath, domain, thumbnail, pathURL);
+
     list.add(mediaPost);
   }
   return list;
@@ -62,18 +66,41 @@ List<MediaPost> createMediaPostList(List data) {
 // Parse media content
 void createMediaPostCardItem(
     List<MediaPost> _mediaPosts, BuildContext context) {
+  String parsedUrlWebm = '';
+  String parsedUrlGifv = '';
   if (_mediaPosts != null) {
     MediaPost mediaPost = _mediaPosts[0];
     for (var i = 0; i < _mediaPosts.length; i++) {
       mediaPost = _mediaPosts[i];
-      var parsedURL =
-          mediaPost.urlPath.substring(0, mediaPost.urlPath.lastIndexOf(".")) +
-              ".mp4";
-      if (!(gifURLS.contains(parsedURL)) &&
-          mediaPost.urlPath.endsWith(".gifv") &&
-          mediaPost.thumbnail != 'nsfw') {
-        gifURLS.add(parsedURL);
+
+      // if (mediaPost.domain == 'v.redd.it') {
+      //   print('MEDIA PATH URL');
+
+      // }
+
+      // gifv
+      if (mediaPost.urlPath.endsWith(".gifv") ||
+          mediaPost.urlPath.endsWith(".gif")) {
+        parsedUrlGifv =
+            mediaPost.urlPath.substring(0, mediaPost.urlPath.lastIndexOf(".")) +
+                ".mp4";
+        if (!(gifURLS.contains(parsedUrlGifv)) &&
+            mediaPost.thumbnail != 'nsfw') {
+          gifURLS.add(parsedUrlGifv);
+        }
       }
+
+      // //GfyCat / webm urls
+      // if (mediaPost.domain == 'gfycat.com') {
+      //   parsedUrlWebm = mediaPost.urlPath;
+      //   parsedUrlWebm = parsedUrlWebm.replaceAll('gfycat', 'giant.gfycat');
+      //   parsedUrlWebm = parsedUrlWebm + '.webm';
+      //   if (!(gifURLS.contains(parsedUrlWebm)) &&
+      //       mediaPost.thumbnail != 'nsfw') {
+      //     gifURLS.add(parsedUrlWebm);
+      //   }
+      // }
     }
   }
+  print(gifURLS);
 }

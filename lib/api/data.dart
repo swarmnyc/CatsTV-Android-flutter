@@ -18,9 +18,8 @@ class MediaPost {
   String urlPath;
   String domain;
   String thumbnail;
-  String pathURL;
 
-  MediaPost(this.urlPath, this.domain, this.thumbnail, this.pathURL);
+  MediaPost(this.urlPath, this.domain, this.thumbnail);
 }
 
 // Get data
@@ -54,9 +53,8 @@ List<MediaPost> createMediaPostList(List data) {
     String urlPath = data[i]["data"]['url'];
     String domain = data[i]["data"]['domain'];
     String thumbnail = data[i]["data"]['thumbnail'];
-    String pathURL = data[i]["data"]['secure_media'];
 
-    MediaPost mediaPost = new MediaPost(urlPath, domain, thumbnail, pathURL);
+    MediaPost mediaPost = new MediaPost(urlPath, domain, thumbnail);
 
     list.add(mediaPost);
   }
@@ -66,17 +64,12 @@ List<MediaPost> createMediaPostList(List data) {
 // Parse media content
 void createMediaPostCardItem(
     List<MediaPost> _mediaPosts, BuildContext context) {
-  String parsedUrlWebm = '';
+  // String parsedUrlWebm = '';
   String parsedUrlGifv = '';
   if (_mediaPosts != null) {
     MediaPost mediaPost = _mediaPosts[0];
     for (var i = 0; i < _mediaPosts.length; i++) {
       mediaPost = _mediaPosts[i];
-
-      // if (mediaPost.domain == 'v.redd.it') {
-      //   print('MEDIA PATH URL');
-
-      // }
 
       // gifv
       if (mediaPost.urlPath.endsWith(".gifv") ||

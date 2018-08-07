@@ -137,6 +137,7 @@ class _VideoItemState extends State<VideoItem>
     if (details.primaryVelocity == 0) return;
 
     if (currentIndex == gifURLS.length - 2) {
+      print('after $fetchedAfter');
       after = fetchedAfter;
       url = '$redditURL$after';
 

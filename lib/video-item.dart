@@ -23,7 +23,7 @@ class _VideoItemState extends State<VideoItem>
 
   Timer _timer;
   List _mediaPosts;
-  int currentIndex = 1;
+  int currentIndex = 0;
 
   Animation<double> fadeAnimation;
   Animation<double> fadeAnimationWatermark;
@@ -53,16 +53,18 @@ class _VideoItemState extends State<VideoItem>
     return new FutureBuilder(
       future: getMediaPosts(),
       builder: (BuildContext context, AsyncSnapshot<List> snapshot) {
-        if (!snapshot.hasData) {}
+        if (!snapshot.hasData) {
+          return spinner();
+        }
 
         _mediaPosts = snapshot.data;
-        createMediaPostCardItem(_mediaPosts, context);
+        createMediaPostItem(_mediaPosts, context);
 
         if (currentIndex == gifURLS.length) {
-          after = fetchedAfter;
-          url = '$redditURL$after';
+          url = url.substring(0, url.lastIndexOf("after=")) +
+              "after=$fetchedAfter";
 
-          createMediaPostCardItem(_mediaPosts, context);
+          createMediaPostItem(_mediaPosts, context);
 
           while (currentIndex == gifURLS.length) {
             return spinner();
@@ -77,19 +79,22 @@ class _VideoItemState extends State<VideoItem>
             child: new Container(
               child: new Stack(
                 children: <Widget>[
-                  // _videoPlayer(gifURLS[currentIndex]),
-                  _videoPlayer(''),
+                  _videoPlayer(gifURLS[currentIndex]),
                   _logoWatermark(),
-                  new Align(
-                    alignment: Alignment.bottomCenter,
-                    child: new Container(
-                      color: Colors.white,
-                      height: 100.0,
-                      child: new Center(
-                        child: Text('${gifURLS.length} \n $currentIndex'),
-                      ),
-                    ),
-                  )
+                  // new Align(
+                  //   alignment: Alignment.bottomCenter,
+                  //   child: new Container(
+                  //     color: Colors.white,
+                  //     height: 100.0,
+                  //     child: new Center(
+                  //       child: Text(
+                  //         'list length: ${gifURLS.length} \n current index: $currentIndex ',
+                  //         style: TextStyle(
+                  //             fontSize: 20.0, fontWeight: FontWeight.bold),
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
             ),
@@ -101,6 +106,7 @@ class _VideoItemState extends State<VideoItem>
 
   // video player using 'chewie' dependency
   Widget _videoPlayer(String _url) {
+    getMoreData();
     return new Container(
       child: new Chewie(
         new VideoPlayerController.network('$_url'),
@@ -111,6 +117,16 @@ class _VideoItemState extends State<VideoItem>
         showControls: false,
       ),
     );
+  }
+
+  void getMoreData() {
+    if (gifURLS.length < 5 ||
+        gifURLS.length < currentIndex * 2 ||
+        currentIndex == gifURLS.length - 2) {
+      url = url.substring(0, url.lastIndexOf("after=")) + "after=$fetchedAfter";
+
+      createMediaPostItem(_mediaPosts, context);
+    }
   }
 
   Widget _logoWatermark() {
@@ -135,14 +151,6 @@ class _VideoItemState extends State<VideoItem>
 // https://stackoverflow.com/a/51303072
   void _onHorizontalDrag(DragEndDetails details) {
     if (details.primaryVelocity == 0) return;
-
-    if (currentIndex == gifURLS.length - 2) {
-      print('after $fetchedAfter');
-      after = fetchedAfter;
-      url = '$redditURL$after';
-
-      createMediaPostCardItem(_mediaPosts, context);
-    }
 
     // left swipe
     if (details.primaryVelocity.compareTo(0) == -1) {

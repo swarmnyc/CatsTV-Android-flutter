@@ -7,12 +7,10 @@ import 'dart:io';
 String fetchedAfter;
 var gifURLS = [];
 // json page limit
-int limit = 10;
+int limit = 20;
 String after = '';
 
-String redditURL =
-    'https://www.reddit.com/r/catgifs/hot.json?limit=$limit&after=';
-String url = 'https://www.reddit.com/r/catgifs/hot.json?limit=$limit&after=';
+String url = 'https://www.reddit.com/r/catgifs/hot.json?limit=$limit&after=$after';
 
 class MediaPost {
   String urlPath;
@@ -62,7 +60,7 @@ List<MediaPost> createMediaPostList(List data) {
 }
 
 // Parse media content
-void createMediaPostCardItem(
+void createMediaPostItem(
     List<MediaPost> _mediaPosts, BuildContext context) {
   // String parsedUrlWebm = '';
   String parsedUrlGifv = '';
@@ -72,8 +70,7 @@ void createMediaPostCardItem(
       mediaPost = _mediaPosts[i];
 
       // gifv
-      if (mediaPost.urlPath.endsWith(".gifv") ||
-          mediaPost.urlPath.endsWith(".gif")) {
+      if (mediaPost.urlPath.endsWith(".gifv")) {
         parsedUrlGifv =
             mediaPost.urlPath.substring(0, mediaPost.urlPath.lastIndexOf(".")) +
                 ".mp4";
@@ -95,5 +92,4 @@ void createMediaPostCardItem(
       // }
     }
   }
-  print(gifURLS);
 }

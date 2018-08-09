@@ -29,9 +29,6 @@ class _VideoItemState extends State<VideoItem>
 
   AnimationController controller;
 
-      VideoPlayerController _controller;
-
-
   initState() {
     super.initState();
 
@@ -98,6 +95,7 @@ class _VideoItemState extends State<VideoItem>
 
   // video player using 'chewie' dependency
   Widget _videoPlayer(String _url) {
+    VideoPlayerController _controller;
     _controller = VideoPlayerController.network(
       '$_url',
     );

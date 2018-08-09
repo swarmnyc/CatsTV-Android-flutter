@@ -6,7 +6,7 @@ import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 
 import 'package:flutter/widgets.dart';
-import 'package:cga/api/data.dart';
+import 'package:cga/data/reddit-data.dart';
 
 class VideoItem extends StatefulWidget {
   @override
@@ -29,8 +29,12 @@ class _VideoItemState extends State<VideoItem>
 
   AnimationController controller;
 
+      VideoPlayerController _controller;
+
+
   initState() {
     super.initState();
+
     controller = AnimationController(
         duration: const Duration(milliseconds: 500), vsync: this);
     fadeAnimation = Tween(begin: 0.0, end: 1.0).animate(controller)
@@ -94,16 +98,25 @@ class _VideoItemState extends State<VideoItem>
 
   // video player using 'chewie' dependency
   Widget _videoPlayer(String _url) {
+    _controller = VideoPlayerController.network(
+      '$_url',
+    );
+    _controller.setVolume(0.0);
+
     getMoreData();
-    return new Container(
-      child: new Chewie(
-        new VideoPlayerController.network('$_url'),
-        autoInitialize: false,
-        aspectRatio: 9 / 16,
-        autoPlay: true,
-        looping: true,
-        showControls: false,
-      ),
+    return new OrientationBuilder(
+      builder: (context, orientation) {
+        return new Container(
+          child: new Chewie(
+            _controller,
+            autoInitialize: false,
+            aspectRatio: orientation == Orientation.portrait ? 9 / 16 : 16 / 9,
+            autoPlay: true,
+            looping: true,
+            showControls: false,
+          ),
+        );
+      },
     );
   }
 

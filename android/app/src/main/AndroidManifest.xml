@@ -14,7 +14,7 @@
          FlutterApplication and put your custom class here. -->
     <application
         android:name="io.flutter.app.FlutterApplication"
-        android:label="cga"
+        android:label="CatsTV"
         android:icon="@mipmap/app_icon">
         <activity
             android:name=".MainActivity"

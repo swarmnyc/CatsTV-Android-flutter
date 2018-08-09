@@ -4,13 +4,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-String fetchedAfter;
-var gifURLS = [];
-// json page limit
+var gifUrls = [];
 int limit = 20;
 String after = '';
 
-String url = 'https://www.reddit.com/r/catgifs/hot.json?limit=$limit&after=$after';
+String url =
+    'https://www.reddit.com/r/catgifs/hot.json?limit=$limit&after=$after';
 
 class MediaPost {
   String urlPath;
@@ -32,7 +31,7 @@ Future<List<MediaPost>> getMediaPosts() async {
       var json = await response.transform(Utf8Decoder()).join();
       var data = jsonDecode(json);
       List results = data['data']['children'];
-      fetchedAfter = data['data']['after'];
+      after = data['data']['after'];
       List<MediaPost> mediaPostList = createMediaPostList(results);
       return mediaPostList;
     } else {
@@ -60,23 +59,23 @@ List<MediaPost> createMediaPostList(List data) {
 }
 
 // Parse media content
-void createMediaPostItem(
-    List<MediaPost> _mediaPosts, BuildContext context) {
+void createMediaPostItem(List<MediaPost> _mediaPosts, BuildContext context) {
   // String parsedUrlWebm = '';
   String parsedUrlGifv = '';
   if (_mediaPosts != null) {
     MediaPost mediaPost = _mediaPosts[0];
+
     for (var i = 0; i < _mediaPosts.length; i++) {
       mediaPost = _mediaPosts[i];
 
-      // gifv
+      // gifv urls
       if (mediaPost.urlPath.endsWith(".gifv")) {
         parsedUrlGifv =
             mediaPost.urlPath.substring(0, mediaPost.urlPath.lastIndexOf(".")) +
                 ".mp4";
-        if (!(gifURLS.contains(parsedUrlGifv)) &&
+        if (!(gifUrls.contains(parsedUrlGifv)) &&
             mediaPost.thumbnail != 'nsfw') {
-          gifURLS.add(parsedUrlGifv);
+          gifUrls.add(parsedUrlGifv);
         }
       }
 
@@ -85,9 +84,9 @@ void createMediaPostItem(
       //   parsedUrlWebm = mediaPost.urlPath;
       //   parsedUrlWebm = parsedUrlWebm.replaceAll('gfycat', 'giant.gfycat');
       //   parsedUrlWebm = parsedUrlWebm + '.webm';
-      //   if (!(gifURLS.contains(parsedUrlWebm)) &&
+      //   if (!(gifUrls.contains(parsedUrlWebm)) &&
       //       mediaPost.thumbnail != 'nsfw') {
-      //     gifURLS.add(parsedUrlWebm);
+      //     gifUrls.add(parsedUrlWebm);
       //   }
       // }
     }

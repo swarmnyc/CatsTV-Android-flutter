@@ -7,7 +7,6 @@ import 'package:chewie/chewie.dart';
 
 import 'package:flutter/widgets.dart';
 import 'package:cga/api/data.dart';
-import 'package:cga/widgets/main.dart';
 
 class VideoItem extends StatefulWidget {
   @override
@@ -23,7 +22,7 @@ class _VideoItemState extends State<VideoItem>
 
   Timer _timer;
   List _mediaPosts;
-  int currentIndex = 0;
+  int _currentIndex = 0;
 
   Animation<double> fadeAnimation;
   Animation<double> fadeAnimationWatermark;
@@ -54,20 +53,23 @@ class _VideoItemState extends State<VideoItem>
       future: getMediaPosts(),
       builder: (BuildContext context, AsyncSnapshot<List> snapshot) {
         if (!snapshot.hasData) {
-          return spinner();
+          return new Center(
+            child: new CircularProgressIndicator(),
+          );
         }
 
         _mediaPosts = snapshot.data;
         createMediaPostItem(_mediaPosts, context);
 
-        if (currentIndex == gifURLS.length) {
-          url = url.substring(0, url.lastIndexOf("after=")) +
-              "after=$fetchedAfter";
+        if (_currentIndex == gifUrls.length) {
+          url = url.substring(0, url.lastIndexOf("after=")) + "after=$after";
 
           createMediaPostItem(_mediaPosts, context);
 
-          while (currentIndex == gifURLS.length) {
-            return spinner();
+          while (_currentIndex == gifUrls.length) {
+            return new Center(
+              child: new CircularProgressIndicator(),
+            );
           }
         }
 
@@ -79,22 +81,8 @@ class _VideoItemState extends State<VideoItem>
             child: new Container(
               child: new Stack(
                 children: <Widget>[
-                  _videoPlayer(gifURLS[currentIndex]),
+                  _videoPlayer(gifUrls[_currentIndex]),
                   _logoWatermark(),
-                  // new Align(
-                  //   alignment: Alignment.bottomCenter,
-                  //   child: new Container(
-                  //     color: Colors.white,
-                  //     height: 100.0,
-                  //     child: new Center(
-                  //       child: Text(
-                  //         'list length: ${gifURLS.length} \n current index: $currentIndex ',
-                  //         style: TextStyle(
-                  //             fontSize: 20.0, fontWeight: FontWeight.bold),
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
                 ],
               ),
             ),
@@ -120,10 +108,10 @@ class _VideoItemState extends State<VideoItem>
   }
 
   void getMoreData() {
-    if (gifURLS.length < 5 ||
-        gifURLS.length < currentIndex * 2 ||
-        currentIndex == gifURLS.length - 2) {
-      url = url.substring(0, url.lastIndexOf("after=")) + "after=$fetchedAfter";
+    if (gifUrls.length < 5 ||
+        gifUrls.length < _currentIndex * 2 ||
+        _currentIndex == gifUrls.length - 2) {
+      url = url.substring(0, url.lastIndexOf("after=")) + "after=$after";
 
       createMediaPostItem(_mediaPosts, context);
     }
@@ -161,14 +149,14 @@ class _VideoItemState extends State<VideoItem>
         const Duration(milliseconds: 500),
         () {
           controller.forward();
-          currentIndex++;
+          _currentIndex++;
           setState(() {});
         },
       );
     }
     // right swipe
     else {
-      if (!(currentIndex - 1 < 0)) {
+      if (!(_currentIndex - 1 < 0)) {
         controller.reverse();
         setState(() {});
 
@@ -176,8 +164,8 @@ class _VideoItemState extends State<VideoItem>
           const Duration(milliseconds: 500),
           () {
             controller.forward();
-            if (currentIndex - 1 != -1) {
-              currentIndex--;
+            if (_currentIndex - 1 != -1) {
+              _currentIndex--;
               setState(() {});
             }
           },

@@ -13,13 +13,13 @@ if (flutterRoot == null) {
 
 apply plugin: 'com.android.application'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
+print ("$flutterRoot/packages/flutter_tools/gradle/flutter.gradle")
 
 def keystorePropertiesFile = project.file("key.properties")
 def keystoreProperties = new Properties()
 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
-def gitTag = 'git describe --tags --abbrev=0'.execute([], project.rootDir).text
-gitTag = gitTag.isEmpty() ? "" : gitTag.split("/")[1].trim()
+def gitTag = 'git describe --tags --abbrev=0'.execute([], project.rootDir).text.trim()
 def gitCommitCount = Integer.parseInt('git rev-list --count HEAD'.execute([], project.rootDir).text.trim())
 
 android {
@@ -47,12 +47,6 @@ android {
         }
     }
 
-    applicationVariants.all { variant ->
-        variant.outputs.all {
-            outputFileName = "catstv-${variant.name}-v${variant.versionName}.apk"
-        }
-    }
-
     buildTypes {
 
         release {
@@ -64,6 +58,12 @@ android {
 
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 
+        }
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "catstv-${variant.name}-v${variant.versionName}.apk"
         }
     }
 }
